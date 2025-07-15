@@ -1,0 +1,168 @@
+{
+  "website": {
+    "name": "Website DPMPTSP Penajam Paser Utara",
+    "branding": {
+      "primaryColor": "#4F46E5",
+      "secondaryColor": "#7C3AED",
+      "backgroundColor": "#FFFFFF",
+      "fontFamily": "Poppins, sans-serif",
+      "logo": {
+        "src": "logo-dpmptsp-ppu.png",
+        "alt": "Logo DPMPTSP Penajam Paser Utara"
+      }
+    },
+    "layout": {
+      "header": {
+        "type": "navbar",
+        "sticky": true,
+        "logo": true,
+        "menus": [
+          { "label": "Beranda", "link": "/" },
+          {
+            "label": "Profil",
+            "dropdown": [
+              { "label": "Visi Misi", "link": "/profil/visi-misi" },
+              { "label": "Struktur Organisasi", "link": "/profil/struktur" },
+              { "label": "Sambutan Kepala Dinas", "link": "/profil/sambutan" }
+            ]
+          },
+          {
+            "label": "Layanan",
+            "dropdown": [
+              { "label": "Perizinan", "link": "/layanan/perizinan" },
+              { "label": "Non-Perizinan", "link": "/layanan/non-perizinan" }
+            ]
+          },
+          {
+            "label": "Program",
+            "dropdown": [
+              { "label": "Program Unggulan", "link": "/program/unggulan" }
+            ]
+          },
+          {
+            "label": "Data",
+            "dropdown": [
+              { "label": "Statistik Investasi", "link": "/data/statistik" }
+            ]
+          },
+          {
+            "label": "Info",
+            "dropdown": [
+              { "label": "Berita", "link": "/berita" },
+              { "label": "Pengumuman", "link": "/pengumuman" }
+            ]
+          },
+          { "label": "SDP", "link": "/sdp" },
+          { "label": "Standar Pelayanan", "link": "/standar-pelayanan" },
+          { "label": "Berita", "link": "/berita" },
+          { "label": "Masuk", "link": "/admin" }
+        ]
+      },
+      "heroSection": {
+        "type": "hero-banner",
+        "headline": "DPMPTSP Penajam Paser Utara",
+        "subheadline": "Dinas Penanaman Modal dan Pelayanan Terpadu Satu Pintu Kabupaten Penajam Paser Utara",
+        "ctaBoxes": [
+          {
+            "title": "Gaspol PPU",
+            "description": "Aplikasi Perizinan Online",
+            "link": "/layanan/perizinan"
+          },
+          {
+            "title": "Bale Madukara PPU",
+            "description": "Mall Pelayanan Publik",
+            "link": "/layanan/mpp"
+          },
+          {
+            "title": "Investasi PPU",
+            "description": "Investasi Penajam Paser Utara",
+            "link": "/data/statistik"
+          }
+        ],
+        "featureIcons": [
+          {
+            "title": "Layanan Perizinan Online",
+            "description": "Gaspol adalah layanan Perizinan Online dari DPMPTSP PPU",
+            "link": "/layanan/perizinan"
+          },
+          {
+            "title": "Monitoring Berkas",
+            "description": "Monitoring perizinan Anda dengan mudah",
+            "link": "/layanan/monitoring"
+          },
+          {
+            "title": "Jenis dan Syarat Izin",
+            "description": "Daftar jenis dan syarat izin dari DPMPTSP PPU",
+            "link": "/layanan/syarat-izin"
+          },
+          {
+            "title": "Regulasi",
+            "description": "Daftar regulasi terkait layanan DPMPTSP PPU",
+            "link": "/layanan/regulasi"
+          }
+        ]
+      },
+      "newsSection": {
+        "type": "news-grid",
+        "sectionTitle": "Daftar Berita Kami",
+        "sectionSubtitle": "Berita dan Informasi Terbaru",
+        "cardLayout": {
+          "columnsDesktop": 3,
+          "columnsTablet": 2,
+          "columnsMobile": 1,
+          "card": {
+            "fields": [
+              "image",
+              "title",
+              "summary",
+              "date",
+              "readCount",
+              "link"
+            ]
+          }
+        },
+        "buttonSeeMore": {
+          "label": "Lainnya...",
+          "link": "/berita"
+        }
+      },
+      "gallerySection": {
+        "type": "gallery-grid",
+        "sectionTitle": "Galeri Kami",
+        "sectionSubtitle": "Kumpulan Galeri Kegiatan",
+        "layout": {
+          "columnsDesktop": 3,
+          "columnsTablet": 2,
+          "columnsMobile": 1
+        },
+        "buttonSeeMore": {
+          "label": "Lihat Selengkapnya",
+          "link": "/galeri"
+        }
+      },
+      "feedbackBanner": {
+        "type": "banner",
+        "backgroundImage": "banner-feedback.jpg",
+        "headline": "Kirim Aduan Umpan Balik anda lewat tombol disamping",
+        "button": {
+          "label": "Pengaduan",
+          "link": "/kontak"
+        }
+      },
+      "contactSection": {
+        "type": "footer-contact",
+        "organizationName": "Dinas Penanaman Modal dan Pelayanan Terpadu Satu Pintu Kabupaten Penajam Paser Utara",
+        "address": "Jl. Provinsi KM 09 Nipah-Nipah, Penajam, Kabupaten Penajam Paser Utara, Kalimantan Timur",
+        "phone": "(0542) 1234567",
+        "email": "dpmptsp@penajamppukab.go.id",
+        "additionalLinks": [
+          { "label": "DPMPTSP Kalimantan Timur", "link": "https://dpmptsp.kaltimprov.go.id" },
+          { "label": "SP4N LAPOR", "link": "https://www.lapor.go.id" },
+          { "label": "JDIH PPU", "link": "https://jdih.penajamppukab.go.id" }
+        ],
+        "copyright":
+          "© 2025 DPMPTSP Penajam Paser Utara. All rights reserved."
+      }
+    }
+  }
+}
