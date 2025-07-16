@@ -1,10 +1,10 @@
 // Comprehensive React hooks library
-import { useState, useEffect, useCallback, useMemo, useRef, useReducer } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { z } from 'zod';
 import { debounce, throttle } from './utils';
-import { logger } from './logger';
-import { cache } from './cache';
+import logger from './logger';
+import cache from './cache';
 import { appConfig } from './config';
 
 // Types
@@ -116,6 +116,7 @@ export const useApi = <T = any>(
         return;
       }
       
+      const requestUrl = typeof url === 'function' ? url() : url;
       setError(error);
       onError?.(error);
       logger.error('API fetch error:', { url: requestUrl, error: error.message });
@@ -173,16 +174,16 @@ export const useForm = <T extends Record<string, any>>(
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitCount, setSubmitCount] = useState(0);
 
-  const validate = useCallback((valuesToValidate: T) => {
-    if (!validationSchema) return {};
+  const validate = useCallback((valuesToValidate: T): Partial<Record<keyof T, string>> => {
+    if (!validationSchema) return {} as Partial<Record<keyof T, string>>;
     
     try {
       validationSchema.parse(valuesToValidate);
-      return {};
-    } catch (error) {
+      return {} as Partial<Record<keyof T, string>>;
+    } catch (error: any) {
       if (error instanceof z.ZodError) {
         const fieldErrors: Partial<Record<keyof T, string>> = {};
-        error.errors.forEach(err => {
+        error.issues.forEach(err => {
           const field = err.path[0] as keyof T;
           if (field) {
             fieldErrors[field] = err.message;
@@ -190,7 +191,7 @@ export const useForm = <T extends Record<string, any>>(
         });
         return fieldErrors;
       }
-      return {};
+      return {} as Partial<Record<keyof T, string>>;
     }
   }, [validationSchema]);
 
@@ -200,7 +201,7 @@ export const useForm = <T extends Record<string, any>>(
     if (validateOnChange) {
       const newValues = { ...values, [field]: value };
       const fieldErrors = validate(newValues);
-      setErrors(prev => ({ ...prev, [field]: fieldErrors[field] }));
+      setErrors(prev => ({ ...prev, [field]: fieldErrors[field] || undefined }));
     }
   }, [values, validate, validateOnChange]);
 
@@ -209,7 +210,7 @@ export const useForm = <T extends Record<string, any>>(
     
     if (validateOnBlur && isTouched) {
       const fieldErrors = validate(values);
-      setErrors(prev => ({ ...prev, [field]: fieldErrors[field] }));
+      setErrors(prev => ({ ...prev, [field]: fieldErrors[field] || undefined }));
     }
   }, [values, validate, validateOnBlur]);
 
@@ -242,7 +243,7 @@ export const useForm = <T extends Record<string, any>>(
     try {
       await onSubmit(values);
     } catch (error) {
-      logger.error('Form submission error:', error);
+      logger.error('Form submission error:', error as Error);
     } finally {
       setIsSubmitting(false);
     }
@@ -427,7 +428,7 @@ export const useLocalStorage = <T>(
       const item = window.localStorage.getItem(key);
       return item ? JSON.parse(item) : initialValue;
     } catch (error) {
-      logger.error('Error reading from localStorage:', error);
+      logger.error('Error reading from localStorage:', error as Error);
       return initialValue;
     }
   });
@@ -441,7 +442,7 @@ export const useLocalStorage = <T>(
         window.localStorage.setItem(key, JSON.stringify(valueToStore));
       }
     } catch (error) {
-      logger.error('Error writing to localStorage:', error);
+      logger.error('Error writing to localStorage:', error as Error);
     }
   }, [key, storedValue]);
 
@@ -452,7 +453,7 @@ export const useLocalStorage = <T>(
         window.localStorage.removeItem(key);
       }
     } catch (error) {
-      logger.error('Error removing from localStorage:', error);
+      logger.error('Error removing from localStorage:', error as Error);
     }
   }, [key, initialValue]);
 
@@ -487,6 +488,7 @@ export const useThrottle = <T>(value: T, delay: number): T => {
     if (now - lastUpdated.current >= delay) {
       setThrottledValue(value);
       lastUpdated.current = now;
+      return;
     } else {
       const timer = setTimeout(() => {
         setThrottledValue(value);
@@ -564,9 +566,11 @@ export const useIntersectionObserver = (
     if (!element) return;
 
     const observer = new IntersectionObserver(
-      ([entry]) => {
-        setIsIntersecting(entry.isIntersecting);
-        setEntry(entry);
+      ([observerEntry]) => {
+        if (observerEntry) {
+          setIsIntersecting(observerEntry.isIntersecting);
+          setEntry(observerEntry);
+        }
       },
       options
     );

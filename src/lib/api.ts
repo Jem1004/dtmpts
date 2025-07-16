@@ -1,9 +1,8 @@
 // Comprehensive API utilities
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
-import { logger } from './logger';
+import logger from './logger';
 import { validateData, formatValidationErrors } from './validation';
-import { connectToDatabase } from './mongodb';
 
 // API response types
 export interface ApiResponse<T = any> {
@@ -227,16 +226,15 @@ export function withValidation<T>(
 
 // Rate limiting middleware
 export function withRateLimit(
-  maxRequests: number,
-  windowMs: number,
+  _maxRequests: number,
+  _windowMs: number,
   handler: (req: NextRequest, context?: any) => Promise<NextResponse>
 ) {
   return withErrorHandling(async (req: NextRequest, context?: any) => {
-    const ip = req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || 'unknown';
-    
     // Simple in-memory rate limiting (implement your own logic here)
     // For now, we'll skip rate limiting implementation
-    // const isRateLimited = await rateLimit(ip, maxRequests, windowMs);
+    // const ip = req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || 'unknown';
+    // const isRateLimited = await rateLimit(ip, _maxRequests, _windowMs);
     
     // if (isRateLimited) {
     //   throw ApiErrors.TooManyRequests('Rate limit exceeded');
@@ -257,16 +255,16 @@ export function withAuth(
       throw ApiErrors.Unauthorized('Missing or invalid authorization header');
     }
 
-    const authToken = authHeader.substring(7);
+    const _authToken = authHeader.substring(7);
     
     try {
       // Here you would verify the JWT token
-      // const user = await verifyToken(authToken);
+      // const user = await verifyToken(_authToken);
       // For now, we'll just pass a mock user
       const user = { id: 'mock-user-id', email: 'user@example.com' };
       
       return handler(req, user, context);
-    } catch (error) {
+    } catch (_error) {
       throw ApiErrors.Unauthorized('Invalid token');
     }
   });
@@ -345,8 +343,8 @@ export function withDatabase(
   return withErrorHandling(async (req: NextRequest, context?: any) => {
     try {
       // Import and connect to database
-      const { connectToDatabase } = await import('./mongodb');
-      await connectToDatabase();
+      const dbConnect = (await import('./mongodb')).default;
+      await dbConnect();
       
       return handler(req, context);
     } catch (error) {
@@ -483,5 +481,5 @@ export default {
   createApiHandler,
 };
 
-// Export types
-export type { ApiResponse, ApiError };
+// Export types (remove conflicting exports)
+// ApiResponse and ApiError are already exported above

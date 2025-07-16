@@ -1,5 +1,4 @@
 // Comprehensive caching system
-import { env } from './env';
 import logger from './logger';
 import performanceMonitor from './performance';
 
@@ -182,7 +181,7 @@ class MemoryCache<T = any> {
     let oldestKey: string | null = null;
     let oldestTime = Date.now();
 
-    for (const [key, item] of this.cache.entries()) {
+    for (const [key, item] of Array.from(this.cache.entries())) {
       if (item.lastAccessed < oldestTime) {
         oldestTime = item.lastAccessed;
         oldestKey = key;
@@ -224,7 +223,7 @@ class MemoryCache<T = any> {
     const now = Date.now();
     const expiredKeys: string[] = [];
 
-    for (const [key, item] of this.cache.entries()) {
+    for (const [key, item] of Array.from(this.cache.entries())) {
       if (now > item.expiry) {
         expiredKeys.push(key);
       }
@@ -299,7 +298,7 @@ class CacheManager {
       default: this.defaultCache.getStats(),
     };
 
-    for (const [name, cache] of this.caches.entries()) {
+    for (const [name, cache] of Array.from(this.caches.entries())) {
       stats[name] = cache.getStats();
     }
 
@@ -309,7 +308,7 @@ class CacheManager {
   // Clear all caches
   clearAll(): void {
     this.defaultCache.clear();
-    for (const cache of this.caches.values()) {
+    for (const cache of Array.from(this.caches.values())) {
       cache.clear();
     }
   }
@@ -317,7 +316,7 @@ class CacheManager {
   // Destroy all caches
   destroyAll(): void {
     this.defaultCache.destroy();
-    for (const cache of this.caches.values()) {
+    for (const cache of Array.from(this.caches.values())) {
       cache.destroy();
     }
     this.caches.clear();
@@ -510,7 +509,7 @@ export class WriteThrough<T> {
       await this.writer(key, null as any); // Assuming null means delete
       return this.cache.delete(key);
     } catch (error) {
-      logger.error('Write-through delete failed', { key }, error);
+      logger.error('Write-through delete failed', { key }, error instanceof Error ? error : new Error(String(error)));
       return false;
     }
   }
@@ -561,7 +560,7 @@ export const cacheWarming = {
     ttl?: number
   ): void {
     this.warmCache(keys, loader, cacheName, ttl).catch(error => {
-      logger.error('Background cache warming failed', {}, error);
+      logger.error('Background cache warming failed', {}, error instanceof Error ? error : new Error(String(error)));
     });
   },
 };

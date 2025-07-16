@@ -1,6 +1,6 @@
 // Comprehensive database utilities
 import mongoose, { Connection, Model, Document, FilterQuery, UpdateQuery, QueryOptions } from 'mongoose';
-import { env } from './env';
+import env from './env';
 import logger from './logger';
 import performanceMonitor from './performance';
 import cache from './cache';
@@ -23,7 +23,6 @@ const DEFAULT_CONFIG: DatabaseConfig = {
     serverSelectionTimeoutMS: 5000,
     socketTimeoutMS: 45000,
     bufferCommands: false,
-    bufferMaxEntries: 0,
   },
   retryAttempts: 3,
   retryDelay: 1000,
@@ -84,7 +83,7 @@ class DatabaseManager {
         return mongoose.connection;
       } catch (error) {
         lastError = error as Error;
-        logger.warn(`Database connection attempt ${attempt} failed`, { error: error.message });
+        logger.warn(`Database connection attempt ${attempt} failed`, { error: error instanceof Error ? error.message : String(error) });
 
         if (attempt < this.config.retryAttempts) {
           await this.delay(this.config.retryDelay * attempt);
@@ -205,7 +204,7 @@ export abstract class BaseRepository<T extends Document> {
 
       return result;
     } catch (error) {
-      logger.error(`${this.modelName}.findById failed`, { id }, error);
+      logger.error(`${this.modelName}.findById failed`, { id }, error instanceof Error ? error : new Error(String(error)));
       throw error;
     }
   }
@@ -241,7 +240,7 @@ export abstract class BaseRepository<T extends Document> {
 
       return result;
     } catch (error) {
-      logger.error(`${this.modelName}.findOne failed`, { filter }, error);
+      logger.error(`${this.modelName}.findOne failed`, { filter }, error instanceof Error ? error : new Error(String(error)));
       throw error;
     }
   }
@@ -314,7 +313,7 @@ export abstract class BaseRepository<T extends Document> {
 
       return result;
     } catch (error) {
-      logger.error(`${this.modelName}.find failed`, { filter }, error);
+      logger.error(`${this.modelName}.find failed`, { filter }, error instanceof Error ? error : new Error(String(error)));
       throw error;
     }
   }
@@ -343,7 +342,7 @@ export abstract class BaseRepository<T extends Document> {
       logger.info(`${this.modelName} created`, { id: result._id });
       return result;
     } catch (error) {
-      logger.error(`${this.modelName}.create failed`, { data }, error);
+      logger.error(`${this.modelName}.create failed`, { data }, error instanceof Error ? error : new Error(String(error)));
       throw error;
     }
   }
@@ -379,7 +378,7 @@ export abstract class BaseRepository<T extends Document> {
       
       return result;
     } catch (error) {
-      logger.error(`${this.modelName}.updateById failed`, { id, update }, error);
+      logger.error(`${this.modelName}.updateById failed`, { id, update }, error instanceof Error ? error : new Error(String(error)));
       throw error;
     }
   }
@@ -411,7 +410,7 @@ export abstract class BaseRepository<T extends Document> {
       
       return result;
     } catch (error) {
-      logger.error(`${this.modelName}.deleteById failed`, { id }, error);
+      logger.error(`${this.modelName}.deleteById failed`, { id }, error instanceof Error ? error : new Error(String(error)));
       throw error;
     }
   }
@@ -451,7 +450,7 @@ export abstract class BaseRepository<T extends Document> {
 
       return result;
     } catch (error) {
-      logger.error(`${this.modelName}.count failed`, { filter }, error);
+      logger.error(`${this.modelName}.count failed`, { filter }, error instanceof Error ? error : new Error(String(error)));
       throw error;
     }
   }
@@ -491,7 +490,7 @@ export abstract class BaseRepository<T extends Document> {
 
       return result;
     } catch (error) {
-      logger.error(`${this.modelName}.aggregate failed`, { pipeline }, error);
+      logger.error(`${this.modelName}.aggregate failed`, { pipeline }, error instanceof Error ? error : new Error(String(error)));
       throw error;
     }
   }
@@ -516,10 +515,11 @@ export abstract class BaseRepository<T extends Document> {
   async getStats(): Promise<any> {
     try {
       await dbManager.connect();
-      const stats = await this.model.collection.stats();
+      const db = mongoose.connection.db;
+      const stats = await db.command({ collStats: this.model.collection.name });
       return stats;
     } catch (error) {
-      logger.error(`${this.modelName}.getStats failed`, {}, error);
+      logger.error(`${this.modelName}.getStats failed`, {}, error instanceof Error ? error : new Error(String(error)));
       throw error;
     }
   }
@@ -595,7 +595,7 @@ export async function healthCheck(): Promise<{
       name: connection.name,
     };
   } catch (error) {
-    logger.error('Database health check failed', {}, error);
+    logger.error('Database health check failed', {}, error instanceof Error ? error : new Error(String(error)));
     return {
       status: 'error',
       connected: false,

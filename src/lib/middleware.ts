@@ -1,12 +1,11 @@
 // Comprehensive middleware system
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
-import jwt from 'jsonwebtoken';
-import rateLimit from 'express-rate-limit';
+import * as jwt from 'jsonwebtoken';
 import { authConfig, apiConfig, securityConfig, logConfig } from './config';
-import { logger } from './logger';
-import { cache } from './cache';
-import { connectDB } from './database';
+import logger from './logger';
+import cache from './cache';
+import { connectToDatabase } from './database';
 
 // Types
 export interface MiddlewareContext {
@@ -80,7 +79,7 @@ export const middlewares = {
       const { method, url, headers } = req;
       
       // Log request
-      logger.api.request({
+      logger.info('API Request', {
         requestId,
         method,
         url,
@@ -92,7 +91,7 @@ export const middlewares = {
       // Add response logging
       context.metadata.logResponse = (response: NextResponse) => {
         const duration = Date.now() - startTime;
-        logger.api.response({
+        logger.info('API Response', {
           requestId,
           method,
           url,
@@ -174,7 +173,7 @@ export const middlewares = {
       rateLimitMap.set(key, rateLimitData);
       
       if (rateLimitData.count > options.max) {
-        logger.security.rateLimitExceeded({
+        logger.warn('Rate limit exceeded', {
           ip,
           path: req.nextUrl.pathname,
           count: rateLimitData.count,
@@ -218,13 +217,13 @@ export const middlewares = {
         context.user = decoded;
         
         // Log authentication
-        logger.security.authSuccess({
+        logger.info('Authentication successful', {
           userId: decoded.id,
           email: decoded.email,
           ip: req.headers.get('x-forwarded-for') || 'unknown',
         });
       } catch (error) {
-        logger.security.authFailure({
+        logger.warn('Authentication failed', {
           token: token.substring(0, 10) + '...',
           error: error instanceof Error ? error.message : 'Unknown error',
           ip: req.headers.get('x-forwarded-for') || 'unknown',
@@ -256,7 +255,7 @@ export const middlewares = {
       const hasRequiredRole = requiredRoles.some(role => userRoles.includes(role));
       
       if (!hasRequiredRole) {
-        logger.security.authorizationFailure({
+        logger.warn('Authorization failed', {
           userId: user.id,
           requiredRoles,
           userRoles,
@@ -311,7 +310,7 @@ export const middlewares = {
           return NextResponse.json(
             {
               error: 'Validation failed',
-              details: error.errors.map(err => ({
+              details: error.issues.map((err: z.ZodIssue) => ({
                 path: err.path.join('.'),
                 message: err.message,
               })),
@@ -356,7 +355,7 @@ export const middlewares = {
   database: (): MiddlewareFunction => {
     return async (context: MiddlewareContext) => {
       try {
-        await connectDB();
+        await connectToDatabase();
       } catch (error) {
         logger.error('Database connection failed:', error);
         return NextResponse.json(
@@ -463,7 +462,7 @@ export class MiddlewareComposer {
       };
       
       Object.entries(allHeaders).forEach(([key, value]) => {
-        if (value) response.headers.set(key, value);
+        if (value && typeof value === 'string') response.headers.set(key, value);
       });
       
       // Log response if logging middleware was used

@@ -20,10 +20,10 @@ const envSchema = z.object({
   
   // API
   API_BASE_URL: z.string().url().default('http://localhost:3000'),
-  API_TIMEOUT: z.string().transform(Number).default('30000'),
+  API_TIMEOUT: z.string().transform(Number).default(30000),
   
   // File uploads
-  UPLOAD_MAX_SIZE: z.string().transform(Number).default('10485760'), // 10MB
+  UPLOAD_MAX_SIZE: z.string().transform(Number).default(10485760), // 10MB
   UPLOAD_ALLOWED_TYPES: z.string().default('image/jpeg,image/png,image/webp,application/pdf'),
   UPLOAD_DIR: z.string().default('./public/uploads'),
   
@@ -39,12 +39,12 @@ const envSchema = z.object({
   REDIS_PASSWORD: z.string().optional(),
   
   // Rate limiting
-  RATE_LIMIT_WINDOW: z.string().transform(Number).default('900000'), // 15 minutes
-  RATE_LIMIT_MAX: z.string().transform(Number).default('100'),
+  RATE_LIMIT_WINDOW: z.string().transform(Number).default(900000), // 15 minutes
+  RATE_LIMIT_MAX: z.string().transform(Number).default(100),
   
   // Security
-  BCRYPT_ROUNDS: z.string().transform(Number).default('12'),
-  SESSION_TIMEOUT: z.string().transform(Number).default('86400000'), // 24 hours
+  BCRYPT_ROUNDS: z.string().transform(Number).default(12),
+  SESSION_TIMEOUT: z.string().transform(Number).default(86400000), // 24 hours
   
   // Logging
   LOG_LEVEL: z.enum(['debug', 'info', 'warn', 'error']).default('info'),
@@ -64,7 +64,7 @@ const parseEnv = () => {
     return envSchema.parse(process.env);
   } catch (error) {
     if (error instanceof z.ZodError) {
-      const missingVars = error.errors.map(err => `${err.path.join('.')}: ${err.message}`).join('\n');
+      const missingVars = error.issues.map(err => `${err.path.join('.')}: ${err.message}`).join('\n');
       throw new Error(`Environment validation failed:\n${missingVars}`);
     }
     throw error;
