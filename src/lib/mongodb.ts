@@ -27,9 +27,7 @@ async function dbConnect() {
       bufferCommands: false,
     };
 
-    cached.promise = mongoose.connect(MONGODB_URI, opts).then((mongooseInstance) => {
-      return mongooseInstance;
-    });
+    cached.promise = mongoose.connect(MONGODB_URI, opts);
   }
 
   try {
@@ -47,7 +45,7 @@ export default dbConnect;
 // Extend global type for mongoose caching
 declare global {
   var mongoose: {
-    conn: typeof mongoose | null;
-    promise: Promise<typeof mongoose> | null;
+    conn: typeof import('mongoose') | null;
+    promise: Promise<typeof import('mongoose')> | null;
   };
 }

@@ -57,7 +57,9 @@ class PerformanceMonitor {
       const lcpObserver = new PerformanceObserver((list) => {
         const entries = list.getEntries();
         const lastEntry = entries[entries.length - 1];
-        this.recordMetric('largest_contentful_paint', lastEntry.startTime);
+        if (lastEntry) {
+          this.recordMetric('largest_contentful_paint', lastEntry.startTime);
+        }
       });
       lcpObserver.observe({ entryTypes: ['largest-contentful-paint'] });
       this.observers.push(lcpObserver);
@@ -89,7 +91,7 @@ class PerformanceMonitor {
       name,
       value,
       timestamp: Date.now(),
-      metadata,
+      ...(metadata && { metadata }),
     };
 
     this.metrics.push(metric);
@@ -133,7 +135,7 @@ class PerformanceMonitor {
   getSummary() {
     const summary: Record<string, any> = {};
     
-    const metricNames = [...new Set(this.metrics.map(m => m.name))];
+    const metricNames = Array.from(new Set(this.metrics.map(m => m.name)));
     
     metricNames.forEach(name => {
       const metrics = this.getMetricsByName(name);
@@ -281,8 +283,12 @@ export function measureWebVitals() {
   const measureFID = () => {
     const observer = new PerformanceObserver((list) => {
       for (const entry of list.getEntries()) {
-        const fid = entry.processingStart - entry.startTime;
-        performanceMonitor.recordMetric('first_input_delay', fid);
+        // Type assertion for PerformanceEventTiming which has processingStart
+        const eventEntry = entry as PerformanceEventTiming;
+        if ('processingStart' in eventEntry) {
+          const fid = eventEntry.processingStart - eventEntry.startTime;
+          performanceMonitor.recordMetric('first_input_delay', fid);
+        }
       }
     });
     

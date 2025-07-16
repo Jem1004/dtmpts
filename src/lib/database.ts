@@ -516,6 +516,9 @@ export abstract class BaseRepository<T extends Document> {
     try {
       await dbManager.connect();
       const db = mongoose.connection.db;
+      if (!db) {
+        throw new Error('Database connection not available');
+      }
       const stats = await db.command({ collStats: this.model.collection.name });
       return stats;
     } catch (error) {

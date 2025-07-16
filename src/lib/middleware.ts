@@ -2,7 +2,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import * as jwt from 'jsonwebtoken';
-import { authConfig, apiConfig, securityConfig, logConfig } from './config';
+import { authConfig, apiConfig, securityConfig } from './config';
 import logger from './logger';
 import cache from './cache';
 import { connectToDatabase } from './database';
@@ -100,6 +100,8 @@ export const middlewares = {
           timestamp: new Date().toISOString(),
         });
       };
+      
+      return undefined;
     };
   },
 
@@ -145,6 +147,8 @@ export const middlewares = {
           .map(([directive, sources]) => `${directive} ${sources.join(' ')}`)
           .join('; '),
       };
+      
+      return undefined;
     };
   },
 
@@ -153,7 +157,7 @@ export const middlewares = {
     const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
     
     return async (context: MiddlewareContext) => {
-      if (!options) return;
+      if (!options) return undefined;
       
       const { req } = context;
       const ip = req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || 'unknown';
@@ -209,7 +213,7 @@ export const middlewares = {
             { status: 401 }
           );
         }
-        return;
+        return undefined;
       }
       
       try {
@@ -236,6 +240,7 @@ export const middlewares = {
           );
         }
       }
+      return undefined;
     };
   },
 
@@ -267,6 +272,7 @@ export const middlewares = {
           { status: 403 }
         );
       }
+      return undefined;
     };
   },
 
@@ -330,7 +336,7 @@ export const middlewares = {
   // Caching middleware
   cache: (options: MiddlewareOptions['cache']): MiddlewareFunction => {
     return async (context: MiddlewareContext) => {
-      if (!options || context.req.method !== 'GET') return;
+      if (!options || context.req.method !== 'GET') return undefined;
       
       const cacheKey = options.key || `api:${context.req.nextUrl.pathname}:${context.req.nextUrl.search}`;
       
@@ -346,23 +352,25 @@ export const middlewares = {
         context.metadata.cacheKey = cacheKey;
         context.metadata.cacheTTL = options.ttl;
       } catch (error) {
-        logger.error('Cache middleware error:', error);
+        logger.error('Cache middleware error:', error as Error);
       }
+      return undefined;
     };
   },
 
   // Database connection middleware
   database: (): MiddlewareFunction => {
-    return async (context: MiddlewareContext) => {
+    return async () => {
       try {
         await connectToDatabase();
       } catch (error) {
-        logger.error('Database connection failed:', error);
+        logger.error('Database connection failed:', error as Error);
         return NextResponse.json(
           { error: 'Database connection failed' },
           { status: 503 }
         );
       }
+      return undefined;
     };
   },
 
@@ -476,7 +484,7 @@ export class MiddlewareComposer {
         return context.metadata.errorHandler(error as Error);
       }
       
-      logger.error('Unhandled middleware error:', error);
+      logger.error('Unhandled middleware error:', error as Error);
       return NextResponse.json(
         { error: 'Internal server error' },
         { status: 500 }

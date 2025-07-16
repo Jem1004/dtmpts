@@ -1,8 +1,8 @@
 // Comprehensive security utilities
-import crypto from 'crypto';
-import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
-import { env } from './env';
+import * as crypto from 'crypto';
+import * as bcrypt from 'bcryptjs';
+import * as jwt from 'jsonwebtoken';
+import env from './env';
 import logger from './logger';
 
 // Security configuration
@@ -43,7 +43,7 @@ export const passwordUtils = {
       const salt = await bcrypt.genSalt(SECURITY_CONFIG.bcrypt.saltRounds);
       return await bcrypt.hash(password, salt);
     } catch (error) {
-      logger.error('Password hashing failed', {}, error);
+      logger.error('Password hashing failed', {}, error as Error);
       throw new Error('Password hashing failed');
     }
   },
@@ -53,7 +53,7 @@ export const passwordUtils = {
     try {
       return await bcrypt.compare(password, hashedPassword);
     } catch (error) {
-      logger.error('Password verification failed', {}, error);
+      logger.error('Password verification failed', {}, error as Error);
       return false;
     }
   },
@@ -120,7 +120,7 @@ export const jwtUtils = {
       {
         expiresIn: SECURITY_CONFIG.jwt.accessTokenExpiry,
         algorithm: SECURITY_CONFIG.jwt.algorithm,
-      }
+      } as jwt.SignOptions
     );
   },
 
@@ -132,7 +132,7 @@ export const jwtUtils = {
       {
         expiresIn: SECURITY_CONFIG.jwt.refreshTokenExpiry,
         algorithm: SECURITY_CONFIG.jwt.algorithm,
-      }
+      } as jwt.SignOptions
     );
   },
 
@@ -143,7 +143,7 @@ export const jwtUtils = {
         algorithms: [SECURITY_CONFIG.jwt.algorithm],
       });
     } catch (error) {
-      logger.warn('JWT verification failed', { token: token.substring(0, 20) + '...' }, error);
+      logger.warn('JWT verification failed', { token: token.substring(0, 20) + '...' }, error as Error);
       throw new Error('Invalid token');
     }
   },
@@ -305,7 +305,7 @@ export const sanitizeUtils = {
       '/': '&#x2F;',
     };
     
-    return input.replace(/[&<>"'\/]/g, (char) => entityMap[char]);
+    return input.replace(/[&<>"'\/]/g, (char) => entityMap[char as keyof typeof entityMap]);
   },
 
   // Sanitize SQL input (basic)
@@ -418,7 +418,9 @@ export const securityHeaders = {
     const headers = this.getHeaders();
     
     Object.entries(headers).forEach(([key, value]) => {
-      response.headers.set(key, value);
+      if (typeof value === 'string') {
+        response.headers.set(key, value);
+      }
     });
     
     return response;

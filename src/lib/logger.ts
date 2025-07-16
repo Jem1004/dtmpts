@@ -80,8 +80,8 @@ class Logger {
       message,
       timestamp: new Date(),
       context: { ...this.context, ...context },
-      error,
-      stack: error?.stack,
+      ...(error && { error }),
+      ...(error?.stack && { stack: error.stack }),
     };
 
     // Add to internal log storage
@@ -293,12 +293,17 @@ export function logSecurityEvent(event: string, severity: 'low' | 'medium' | 'hi
                 severity === 'high' ? LogLevel.ERROR :
                 severity === 'medium' ? LogLevel.WARN : LogLevel.INFO;
   
-  logger.log(level, `Security Event: ${event}`, {
-    type: 'security',
-    event,
-    severity,
-    ...context,
-  });
+  const securityContext = { type: 'security', event, severity, ...context };
+  
+  if (level === LogLevel.FATAL) {
+    logger.fatal(`Security Event: ${event}`, securityContext);
+  } else if (level === LogLevel.ERROR) {
+    logger.error(`Security Event: ${event}`, securityContext);
+  } else if (level === LogLevel.WARN) {
+    logger.warn(`Security Event: ${event}`, securityContext);
+  } else {
+    logger.info(`Security Event: ${event}`, securityContext);
+  }
 }
 
 // Middleware for Express.js (if using API routes)
@@ -357,7 +362,6 @@ export function useLogger(moduleName?: string) {
 // Export types and classes
 export {
   Logger,
-  LogLevel,
   type LogEntry,
   type LoggerConfig,
 };

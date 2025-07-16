@@ -544,7 +544,7 @@ export const cacheWarming = {
         const value = await loader(key);
         cache.set(key, value, ttl);
       } catch (error) {
-        logger.warn(`Cache warming failed for key: ${key}`, {}, error);
+        logger.warn(`Cache warming failed for key: ${key}`, {}, error as Error);
       }
     });
 
